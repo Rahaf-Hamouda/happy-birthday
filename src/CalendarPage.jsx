@@ -8,23 +8,6 @@ const CalendarPage = ({ onValidDate }) => {
   const [error, setError] = useState("")
   const inputRef = useRef(null)
 
-  const handleKeyDown = (e) => {
-    if (e.key === "Backspace") {
-      setDigits((prev) => prev.slice(0, -1))
-      setError("")
-      return
-    }
-    if (e.key === "Enter") {
-      checkDate()
-      return
-    }
-    if (digits.length >= TOTAL_HEARTS) return
-    if (/^[0-9]$/.test(e.key)) {
-      setDigits((prev) => [...prev, e.key])
-      setError("")
-    }
-  }
-
   const checkDate = () => {
     if (digits.join("") === TARGET_DIGITS) {
       setError("")
@@ -32,12 +15,6 @@ const CalendarPage = ({ onValidDate }) => {
     } else {
       setError("💔 This date is not special... Try again")
     }
-  }
-
-  const formatDisplay = () => {
-    const d = [...digits]
-    while (d.length < TOTAL_HEARTS) d.push("")
-    return d.map((c) => c || "_").join("")
   }
 
   return (
@@ -142,29 +119,28 @@ const CalendarPage = ({ onValidDate }) => {
               )
             })}
           </div>
-          {/* Hidden input for keyboard */}
+          {/* Mobile-friendly input */}
           <input
             ref={inputRef}
             type="text"
-            className="absolute opacity-0 w-0 h-0 pointer-events-none"
-            onKeyDown={handleKeyDown}
-            autoFocus
+            inputMode="numeric"
+            pattern="[0-9]*"
+            value={digits.join("")}
+            onChange={(e) => {
+              const val = e.target.value.replace(/\D/g, "")
+              setDigits(val.split("").slice(0, TOTAL_HEARTS))
+              setError("")
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Backspace") {
+                setDigits((prev) => prev.slice(0, -1))
+                setError("")
+              }
+              if (e.key === "Enter") checkDate()
+            }}
+            placeholder="Type the date..."
+            className="mt-4 w-full px-5 py-4 bg-pink-50 border-2 border-pink-200 rounded-2xl text-center text-lg font-medium text-gray-700 placeholder-gray-400 focus:border-rose-400 focus:outline-none focus:ring-4 focus:ring-pink-200/50 transition-all duration-300"
           />
-          {/* Clickable area to trigger focus */}
-          <div
-            className="mt-4 cursor-pointer"
-            onClick={() => inputRef.current?.focus()}
-          >
-            <div className="inline-block px-6 py-2 bg-pink-50 border-2 border-dashed border-pink-200 rounded-xl text-rose-400 text-sm hover:bg-pink-100 transition-all">
-              {digits.length === 0
-                ? "👆 Click here & start typing..."
-                : formatDisplay().split("").map((c, i) => (
-                    <span key={i} className={c ? "text-rose-500 font-bold" : "text-gray-300"}>
-                      {c || "_"}
-                    </span>
-                  ))}
-            </div>
-          </div>
         </div>
 
         {/* Error */}
